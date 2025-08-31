@@ -1,0 +1,9 @@
+# Virtual environment
+venv/
+
+# Log files
+*.log
+
+# Uploaded testbed files
+*.yaml
+!testbed.yaml
