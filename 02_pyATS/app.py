@@ -13,7 +13,8 @@ from genie.testbed import load
 load_dotenv()
 
 # --- Groq Client ---
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+# client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+client = Groq(api_key=st.secrets.GROQ_API_KEY)
 
 # --- MCP Server Management ---
 def start_mcp_server(testbed_file):
