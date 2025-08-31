@@ -7,14 +7,16 @@ import subprocess
 import threading
 from dotenv import load_dotenv
 from openai import OpenAI
+from groq import Groq
 
 # === 1. Load Environment Variables ===
 load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = os.getenv("GROQ_API_KEY")
 if not OPENAI_API_KEY:
     raise RuntimeError("OPENAI_API_KEY not set")
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+# client = OpenAI(api_key=OPENAI_API_KEY)
+client = Groq(api_key=OPENAI_API_KEY)
 
 # === 2. Launch MCP subprocess ===
 FASTMCP_CMD = ["python3", "server.py"]
@@ -143,7 +145,8 @@ def react_agent():
 
         try:
             response = client.chat.completions.create(
-                model="gpt-4o",
+                # model="gpt-4o",
+                model="openai/gpt-oss-120b",
                 messages=messages,
                 functions=openai_tools,
                 function_call="auto"
@@ -161,7 +164,7 @@ def react_agent():
                 messages.append({"role": "function", "name": fname, "content": json.dumps(tool_result)})
 
                 final_response = client.chat.completions.create(
-                    model="gpt-4o",
+                    model="openai/gpt-oss-120b",
                     messages=messages
                 )
                 print("\nAgent:", final_response.choices[0].message.content)
