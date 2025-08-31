@@ -26,7 +26,7 @@ def start_mcp_server(testbed_file):
     env["PYATS_TESTBED_PATH"] = testbed_file
     proc = subprocess.Popen(
         # ["venv/bin/python3", "server.py"],
-        ["sys.executable", "server.py"],
+        [sys.executable, "server.py"],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
