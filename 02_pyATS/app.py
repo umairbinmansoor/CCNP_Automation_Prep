@@ -114,6 +114,8 @@ def main():
     if "initialized" not in st.session_state:
         st.session_state.messages = []
         st.session_state.initialized = True
+    
+    if "device_type" not in st.session_state:
         st.session_state.device_type = "Device"
 
     st.title(f"{st.session_state.device_type} Chat Interface")
