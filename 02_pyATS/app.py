@@ -228,7 +228,7 @@ def main():
                     {"role": "assistant", "content": None, "tool_calls": choice.tool_calls},
                     {"role": "tool", "tool_call_id": choice.tool_calls[0].id, "name": fname, "content": json.dumps(response_data)}
                 ]
-                final_response = client.chat.completions.create(model="llama3-70b-8192", messages=summary_messages)
+                final_response = client.chat.completions.create(model="qwen/qwen3-32b", messages=summary_messages)
                 summary = final_response.choices[0].message.content
                 st.session_state.messages.append({"role": "assistant", "content": summary})
                 st.rerun()
