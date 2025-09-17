@@ -209,7 +209,7 @@ def main():
             messages_for_api = [{"role": "system", "content": system_prompt}] + st.session_state.messages
 
             response = client.chat.completions.create(
-                model="llama3-70b-8192",
+                model="qwen/qwen3-32b",
                 messages=messages_for_api,
                 tools=st.session_state.openai_tools,
                 tool_choice="auto"
