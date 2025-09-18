@@ -124,10 +124,10 @@ def main():
 
     testbed_template = """
     devices:
-      YOUR_DEVICE_NAME_HERE:
+      YOUR_DEVICE_NAME_HERE: # e.g., 'Catalyst L3 Switch'
         type: router
         os: iosxe
-        platform: Cat8000v
+        platform: DEVICE_TYPE_HERE # e.g., 'cisco_ios', 'Cat8000v'
         credentials:
           default:
             username: your_username
