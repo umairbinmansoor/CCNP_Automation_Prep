@@ -1,3 +1,10 @@
+import sys
+import os
+# Add the venv site-packages to the sys.path
+venv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'venv'))
+site_packages = os.path.join(venv_path, 'lib', 'python3.13', 'site-packages')
+sys.path.insert(0, site_packages)
+
 # pyats_fastmcp_server.py
 
 import os
