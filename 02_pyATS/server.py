@@ -1,10 +1,3 @@
-import sys
-import os
-# Add the venv site-packages to the sys.path
-venv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'venv'))
-site_packages = os.path.join(venv_path, 'lib', 'python3.13', 'site-packages')
-sys.path.insert(0, site_packages)
-
 # pyats_fastmcp_server.py
 
 import os
@@ -14,8 +7,6 @@ import sys
 import json
 import logging
 import textwrap
-import coral_server
-import master_agent
 from pyats.topology import loader
 from genie.libs.parser.utils import get_parser
 from dotenv import load_dotenv
@@ -95,7 +86,7 @@ def _disconnect_device(device):
 def clean_output(output: str) -> str:
     """Clean ANSI escape sequences and non-printable characters."""
     # Remove ANSI escape sequences
-    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|[[0-?]*[ -/]*[@-~])')
     output = ansi_escape.sub('', output)
     
     # Remove non-printable control characters
@@ -345,7 +336,7 @@ def _execute_linux_command(device_name: str, command: str) -> Dict[str, Any]:
                 pass
 
 # --- Initialize FastMCP ---
-mcp = FastMCP("pyATS Network Automation Server (Coral Protocol Enabled)")
+mcp = FastMCP("pyATS Network Automation Server")
 
 # --- Define Tools ---
 
