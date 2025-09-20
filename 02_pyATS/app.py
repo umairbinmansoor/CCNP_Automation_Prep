@@ -188,6 +188,9 @@ def main():
     st.sidebar.write(f"Using testbed: `{st.session_state.current_testbed}`")
     st.sidebar.write(f"Device: `{st.session_state.device_name}`")
 
+    st.sidebar.title("Agent Controls")
+    agent_task = st.sidebar.selectbox("Select a task:", ["", "summarize", "qa"])
+
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
@@ -197,47 +200,53 @@ def main():
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        try:
-            system_prompt = (
-                f"You are a Cisco network automation expert using pyATS. "
-                f"You are connected to a device named '{st.session_state.device_name}'. "
-                f"When you need to run a command, use this device name. "
-                "You can run commands like 'show ip interface brief', apply configurations, etc. "
-                "Call the appropriate tool and always use the correct device_name."
-            )
+        if agent_task:
+            with st.spinner(f"Delegating task: `{agent_task}`..."):
+                tool_result = call_tool("delegate_task_to_agent", {"task": agent_task, "text": prompt})
+            st.session_state.messages.append({"role": "assistant", "content": tool_result.get('result')})
+            st.rerun()
+        else:
+            try:
+                system_prompt = (
+                    f"You are a Cisco network automation expert using pyATS. "
+                    f"You are connected to a device named '{st.session_state.device_name}'. "
+                    f"When you need to run a command, use this device name. "
+                    "You can run commands like 'show ip interface brief', apply configurations, etc. "
+                    "Call the appropriate tool and always use the correct device_name."
+                )
 
-            messages_for_api = [{"role": "system", "content": system_prompt}] + st.session_state.messages
+                messages_for_api = [{"role": "system", "content": system_prompt}] + st.session_state.messages
 
-            response = client.chat.completions.create(
-                model="meta-llama/llama-4-scout-17b-16e-instruct",
-                messages=messages_for_api,
-                tools=st.session_state.openai_tools,
-                tool_choice="auto"
-            )
-            choice = response.choices[0].message
+                response = client.chat.completions.create(
+                    model="meta-llama/llama-4-scout-17b-16e-instruct",
+                    messages=messages_for_api,
+                    tools=st.session_state.openai_tools,
+                    tool_choice="auto"
+                )
+                choice = response.choices[0].message
 
-            if choice.tool_calls:
-                fname = choice.tool_calls[0].function.name
-                args = json.loads(choice.tool_calls[0].function.arguments)
-                with st.spinner(f"Running: `{fname}({args})`..."):
-                    tool_result = call_tool(fname, args)
-                response_str = tool_result.get('content', [{}])[0].get('text', '{}')
-                response_data = json.loads(response_str)
+                if choice.tool_calls:
+                    fname = choice.tool_calls[0].function.name
+                    args = json.loads(choice.tool_calls[0].function.arguments)
+                    with st.spinner(f"Running: `{fname}({args})`..."):
+                        tool_result = call_tool(fname, args)
+                    response_str = tool_result.get('content', [{}])[0].get('text', '{}')
+                    response_data = json.loads(response_str)
 
-                summary_messages = messages_for_api + [
-                    {"role": "assistant", "content": None, "tool_calls": choice.tool_calls},
-                    {"role": "tool", "tool_call_id": choice.tool_calls[0].id, "name": fname, "content": json.dumps(response_data)}
-                ]
-                final_response = client.chat.completions.create(model="meta-llama/llama-4-scout-17b-16e-instruct", messages=summary_messages)
-                summary = final_response.choices[0].message.content
-                st.session_state.messages.append({"role": "assistant", "content": summary})
-                st.rerun()
-            else:
-                st.session_state.messages.append({"role": "assistant", "content": choice.content})
-                st.rerun()
+                    summary_messages = messages_for_api + [
+                        {"role": "assistant", "content": None, "tool_calls": choice.tool_calls},
+                        {"role": "tool", "tool_call_id": choice.tool_calls[0].id, "name": fname, "content": json.dumps(response_data)}
+                    ]
+                    final_response = client.chat.completions.create(model="meta-llama/llama-4-scout-17b-16e-instruct", messages=summary_messages)
+                    summary = final_response.choices[0].message.content
+                    st.session_state.messages.append({"role": "assistant", "content": summary})
+                    st.rerun()
+                else:
+                    st.session_state.messages.append({"role": "assistant", "content": choice.content})
+                    st.rerun()
 
-        except Exception as e:
-            st.error(f"An error occurred: {e}")
+            except Exception as e:
+                st.error(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     main()

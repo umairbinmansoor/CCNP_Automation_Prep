@@ -7,6 +7,8 @@ import sys
 import json
 import logging
 import textwrap
+import coral_server
+import master_agent
 from pyats.topology import loader
 from genie.libs.parser.utils import get_parser
 from dotenv import load_dotenv
@@ -336,9 +338,41 @@ def _execute_linux_command(device_name: str, command: str) -> Dict[str, Any]:
                 pass
 
 # --- Initialize FastMCP ---
-mcp = FastMCP("pyATS Network Automation Server")
+mcp = FastMCP("pyATS Network Automation Server (Coral Protocol Enabled)")
 
 # --- Define Tools ---
+
+@mcp.tool()
+async def delegate_task_to_agent(task: str, text: str) -> str:
+    """
+    Delegates a task to the appropriate agent.
+
+    Args:
+        task: The task to delegate (e.g., 'summarize', 'qa')
+        text: The text to process
+
+    Returns:
+        JSON string containing the result
+    """
+    try:
+        result = master_agent.delegate_task(task, text)
+        return json.dumps({"status": "success", "result": result}, indent=2)
+    except Exception as e:
+        logger.error(f"Error in delegate_task_to_agent: {e}", exc_info=True)
+        return json.dumps({"status": "error", "error": str(e)}, indent=2)
+
+@mcp.tool()
+async def get_coral_protocol_info() -> str:
+    """
+    Provides information about the Coral Protocol.
+
+    Returns:
+        A string containing information about the Coral Protocol.
+    """
+    return json.dumps({
+        "status": "success",
+        "info": "Coral Protocol is an open, decentralized infrastructure designed to facilitate communication, coordination, trust, and payments among AI agents, aiming to establish an 'Internet of Agents'. This application utilizes the Model Context Protocol (MCP), a key component of Coral Protocol, to enable communication between the Streamlit frontend and the pyATS backend."
+    }, indent=2)
 
 @mcp.tool()
 async def pyats_run_show_command(device_name: str, command: str) -> str:
